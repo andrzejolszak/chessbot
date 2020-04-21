@@ -122,8 +122,9 @@ func (s SlackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			var gameID string
 			if ev.ThreadTimeStamp == "" {
 				gameID = ev.TimeStamp
+			} else {
+				gameID = ev.ThreadTimeStamp
 			}
-			gameID = "constGameId"
 			matched := slackCommandParser.ParseInput(ev.Text)
 			switch matched.Type {
 			case Unknown:
