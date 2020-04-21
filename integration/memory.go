@@ -28,7 +28,7 @@ func (m *MemoryStore) StoreAuthToken(teamID string, oauthToken string) error {
 func (m *MemoryStore) GetAuthToken(teamID string) (string, error) {
 	token, ok := m.authorizations[teamID]
 	if !ok {
-		return "", fmt.Errorf("Auth token not found for team %v", teamID)
+		return "", fmt.Errorf("Auth token not found for team %v . Do you need to call https://slack.com/oauth/authorize?client_id=1073128046261.1075454950226&scope=bot ?", teamID)
 	}
 	return token, nil
 }

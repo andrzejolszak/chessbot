@@ -36,7 +36,7 @@ type command uint8
 var slackCommandPatterns = []CommandPattern{
 	{
 		Type:    Challenge,
-		Pattern: regexp.MustCompile("^<@[\\w|\\d]+>.*challenge.*?<@([\\w\\d]+)>.*$"),
+		Pattern: regexp.MustCompile("^<@[\\w|\\d]+> challenge (.*)$"),
 	},
 	{
 		Type:    Move,

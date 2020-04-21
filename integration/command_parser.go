@@ -3,6 +3,7 @@ package integration
 import (
 	"errors"
 	"regexp"
+	"strings"
 )
 
 // CommandType is the kind of command a user wishes to execute.
@@ -51,8 +52,10 @@ func (c *CommandMatch) ToChallenge() (*ChallengeCommand, error) {
 	if c.Type != Challenge || len(c.Params) < 1 {
 		return nil, errors.New("match is not a valid challenge command")
 	}
+
+	var cleaned = strings.ReplaceAll(strings.ReplaceAll(c.Params[0], "<@", ""), ">", "")
 	return &ChallengeCommand{
-		ChallengeParams: c.Params,
+		ChallengeParams: strings.Split(cleaned, " "),
 	}, nil
 }
 
