@@ -237,12 +237,13 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 	s.GameStorage.StoreGame(gameID, gm)
 	gm.Start()
 	link, _ := s.LinkRenderer.CreateLink(gm)
+	log.Printf("Image link: %s\n", link.String())
 	s.SlackClient.PostMessage(
 		ev.Channel,
-		slack.MsgOptionText(fmt.Sprintf("<@%v>'s (%v) turn.", gm.TurnPlayer().ID, gm.Turn()), false),
+		slack.MsgOptionText(fmt.Sprintf("%v (%v) turn.", strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), gm.Turn()), false),
 		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
-			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", challengerId, challengedId),
+			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.ReplaceAll(challengerId, " ", "> <@"), strings.ReplalceAll(challengedId, " ", "> <@")),
 			ImageURL: link.String(),
 		}))
 }
