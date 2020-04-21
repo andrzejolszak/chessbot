@@ -208,12 +208,14 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 		return
 	}
 
-	challengerId := " "
-	challengedId := " "
-	current := " "
+	var challengerId = " "
+	var challengedId = " "
+	var current = " "
 	for _, param := range command.ChallengeParams {
+		log.Printf("Param: %s\n", param)
+		log.Printf("Current: %s\n", current)
 		current = current + " "
-		if param == ":" {
+		if strings.Contains(param, ":") {
 			if challengerId == " " {
 				challengerId = current
 			} else {
@@ -225,6 +227,9 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 
 		current = current + param
 	}
+
+	log.Printf("challengerId: %s\n", challengerId)
+	log.Printf("challengedId: %s\n", challengedId)
 
 	// challenge_response
 	gm := game.NewGame(gameID, game.Player{
@@ -298,17 +303,17 @@ func (s SlackHandler) handleTakebackCommand(gameID string, ev *slackevents.AppMe
 func getHelpAttachments() []slack.Attachment {
 	return []slack.Attachment{
 		slack.Attachment{
-			Title: "Challenge Player",
-			Text:  "To challenge a player, mention @chessbot and say \"challenge @player_to_challenge\".",
+			Title: "Challenge Players",
+			Text:  "To challenge players, mention @chessbot and say give two list of player separated by spaces. e.g. \"challenge @p1 @p2 : @p3 @p4\".",
 		},
 		slack.Attachment{
 			Title: "Making a move",
-			Text:  "To make a move playing, mention @chessbot and say \"d2d4\" which are the grid position of the piece you wish to move and the destination.",
+			Text:  "To make a move playing, mention @chessbot and say \"d2d4\" which are the grid position of the piece you wish to move and the destination. For more advanced moves like castling etc. check out the help link below.",
 		},
 		slack.Attachment{
 			Pretext:   "For additional help visit our website.",
 			Title:     "ChessBot Help",
-			TitleLink: "https://www.chris-saylor.com/chessbot",
+			TitleLink: "https://www.chris-saylor.com/chessbot/gameplay/moves.html",
 		},
 	}
 }
