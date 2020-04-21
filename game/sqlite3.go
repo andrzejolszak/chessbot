@@ -3,6 +3,7 @@ package game
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	// import sqlite package for use with the sql interface
@@ -59,6 +60,7 @@ func NewSqliteStore(path string) (*SqliteStore, error) {
 // StoreGame stores a game by ID.
 // If a game is already established, only the PGN log is updated
 func (s *SqliteStore) StoreGame(ID string, gm *Game) error {
+	log.Printf("SGameId = %v", ID)
 	if _, err := s.RetrieveGame(ID); err == nil {
 		stmt, _ := s.db.Prepare("update games set pgn = ?, last_moved = ? where id = ?")
 		defer stmt.Close()
@@ -73,6 +75,7 @@ func (s *SqliteStore) StoreGame(ID string, gm *Game) error {
 
 // RetrieveGame retrieves a game by ID
 func (s *SqliteStore) RetrieveGame(ID string) (*Game, error) {
+	log.Printf("RGameId = %v", ID)
 	stmt, err := s.db.Prepare("select player_white_id, player_black_id, last_moved, pgn from games where id = ?")
 	if err != nil {
 		return nil, err
