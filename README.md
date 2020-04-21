@@ -1,7 +1,11 @@
 # ChessBot
 
-[![Build Status](https://drone1.chris-saylor.com/api/badges/cjsaylor/chessbot/status.svg)](https://drone1.chris-saylor.com/cjsaylor/chessbot)
-[![GoDoc](https://godoc.org/github.com/cjsaylor/chessbot?status.svg)](https://godoc.org/github.com/cjsaylor/chessbot)
+This is modification of Chris' Saylor't great Slack chess bot:
+* Allow for teams playing against each other, as opposed to a single person against a single person.
+* More small tweaks to come?
+
+Generally, this is not intended as a real project - if you want to contribute, please focus on Chris' repo instead.
+
 [![Player Documentation](https://img.shields.io/badge/doc-player-blue)](https://www.chris-saylor.com/chessbot)
 
 This is a Slack bot that allows players to challenge each other to a game of Chess.

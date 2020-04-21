@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/cjsaylor/chessbot/game"
 	"github.com/cjsaylor/chessbot/rendering"
@@ -152,7 +153,7 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 		return
 	}
 	player := gm.TurnPlayer()
-	if ev.User != player.ID {
+	if !strings.Contains(player.ID, " "+ev.User+" ") {
 		s.sendError(gameID, ev.Channel, "Please wait for your turn.")
 		return
 	}
@@ -206,44 +207,42 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 		s.sendErrorWithHelp(gameID, ev.Channel, "A game already exists in this thread. Try making a new thread.")
 		return
 	}
-	_, _, channelID, err := s.SlackClient.OpenIMChannel(command.ChallengedID)
-	if err != nil {
-		log.Printf("unable to challenge %v: %v", command.ChallengedID, err)
-		s.sendError(gameID, ev.Channel, "Unable to challenge that player.")
-		return
+
+	challengerId := " "
+	challengedId := " "
+	current := " "
+	for _, param := range command.ChallengeParams {
+		current = current + " "
+		if param == ":" {
+			if challengerId == " " {
+				challengerId = current
+			} else {
+				challengedId = current
+			}
+
+			current = " "
+		}
+
+		current = current + param
 	}
-	challenge := &game.Challenge{
-		ChallengerID: ev.User,
-		ChallengedID: command.ChallengedID,
-		GameID:       gameID,
-		ChannelID:    ev.Channel,
-	}
-	s.ChallengeStorage.StoreChallenge(challenge)
+
+	// challenge_response
+	gm := game.NewGame(gameID, game.Player{
+		ID: challengerId,
+	}, game.Player{
+		ID: challengedId,
+	})
+	s.GameStorage.StoreGame(gameID, gm)
+	gm.Start()
+	link, _ := s.LinkRenderer.CreateLink(gm)
 	s.SlackClient.PostMessage(
-		channelID,
-		slack.MsgOptionText(fmt.Sprintf("<@%v> has challenged you to a game of chess!", ev.User), false),
+		ev.Channel,
+		slack.MsgOptionText(fmt.Sprintf("<@%v>'s (%v) turn.", gm.TurnPlayer().ID, gm.Turn()), false),
+		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
-			Text:       "Do you accept?",
-			Fallback:   "Unable to accept the challenge.",
-			CallbackID: "challenge_response",
-			Actions: []slack.AttachmentAction{
-				slack.AttachmentAction{
-					Name:  "challenge",
-					Text:  "Accept Challenge",
-					Type:  "button",
-					Value: "accept",
-				},
-				slack.AttachmentAction{
-					Name:  "challenge",
-					Text:  "Decline",
-					Type:  "button",
-					Style: "danger",
-					Value: "reject",
-				},
-			},
-		},
-		))
-	s.SlackClient.PostEphemeral(ev.Channel, ev.User, slack.MsgOptionText("Challenge has been sent.", false))
+			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", challengerId, challengedId),
+			ImageURL: link.String(),
+		}))
 }
 
 func (s SlackHandler) handleResignCommand(gameID string, ev *slackevents.AppMentionEvent) {

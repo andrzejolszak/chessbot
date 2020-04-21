@@ -3,7 +3,6 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -89,27 +88,6 @@ func (s SlackActionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Failed to remove challenge %v: %v\n", challenge, err)
 		}
 		return
-	}
-	gameID := challenge.GameID
-	gm := game.NewGame(gameID, game.Player{
-		ID: event.User.ID,
-	}, game.Player{
-		ID: challenge.ChallengerID,
-	})
-	s.GameStorage.StoreGame(gameID, gm)
-	gm.Start()
-	link, _ := s.LinkRenderer.CreateLink(gm)
-	s.SlackClient.PostMessage(
-		challenge.ChannelID,
-		slack.MsgOptionText(fmt.Sprintf("<@%v>'s (%v) turn.", gm.TurnPlayer().ID, gm.Turn()), false),
-		slack.MsgOptionTS(gameID),
-		slack.MsgOptionAttachments(slack.Attachment{
-			Text:     fmt.Sprintf("<@%v> has accepted. Here is the opening.", event.User.ID),
-			ImageURL: link.String(),
-		}))
-	s.sendResponse(w, event.OriginalMessage, ":ok: Game begun!")
-	if err := s.ChallengeStorage.RemoveChallenge(challenge.ChallengerID, challenge.ChallengedID); err != nil {
-		log.Printf("Failed to remove challenge %v: %v\n", challenge, err)
 	}
 }
 

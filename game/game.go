@@ -125,7 +125,7 @@ func NewGameFromPGN(ID string, pgn string, white Player, black Player) (*Game, e
 // PlayerByID returns a reference to a player given their ID
 func (g *Game) PlayerByID(ID string) (*Player, error) {
 	for _, player := range g.Players {
-		if player.ID == ID {
+		if strings.Contains(player.ID, " "+ID+" ") {
 			return &player, nil
 		}
 	}

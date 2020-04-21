@@ -38,7 +38,7 @@ type CommandMatch struct {
 
 // ChallengeCommand represents a challenge to propose
 type ChallengeCommand struct {
-	ChallengedID string
+	ChallengeParams []string
 }
 
 // MoveCommand represents a single long algebraic notation move.
@@ -52,7 +52,7 @@ func (c *CommandMatch) ToChallenge() (*ChallengeCommand, error) {
 		return nil, errors.New("match is not a valid challenge command")
 	}
 	return &ChallengeCommand{
-		ChallengedID: c.Params[0],
+		ChallengeParams: c.Params,
 	}, nil
 }
 
