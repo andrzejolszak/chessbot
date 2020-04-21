@@ -243,7 +243,7 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 		slack.MsgOptionText(fmt.Sprintf("%v (%v) turn.", strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), gm.Turn()), false),
 		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
-			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.ReplaceAll(challengerId, " ", "> <@"), strings.ReplalceAll(challengedId, " ", "> <@")),
+			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.ReplaceAll(challengerId, " ", "> <@"), strings.ReplaceAll(challengedId, " ", "> <@")),
 			ImageURL: link.String(),
 		}))
 }
