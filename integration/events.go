@@ -177,7 +177,7 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 	} else {
 		s.SlackClient.PostMessage(
 			ev.Channel,
-			slack.MsgOptionText(fmt.Sprintf("<@%v>'s (%v) turn.", gm.TurnPlayer().ID, gm.Turn()), false),
+			slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@")), false),
 			slack.MsgOptionAttachments(boardAttachment),
 			slack.MsgOptionTS(ev.TimeStamp))
 	}
@@ -210,14 +210,14 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 
 	var challengerId = " "
 	var challengedId = " "
-	var current = " "
+	var current = ""
 	for _, param := range command.ChallengeParams {
 		log.Printf("Param: %s\n", param)
 		log.Printf("Current: %s\n", current)
 		current = current + " "
 		if strings.Contains(param, ":") {
 			challengerId = current
-			current = " "
+			current = ""
 		} else {
 			current = current + param
 		}
@@ -240,7 +240,7 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 	log.Printf("Image link: %s\n", link.String())
 	s.SlackClient.PostMessage(
 		ev.Channel,
-		slack.MsgOptionText(fmt.Sprintf("%v (%v) turn.", strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), gm.Turn()), false),
+		slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@")), false),
 		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
 			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.ReplaceAll(challengerId, " ", "> <@"), strings.ReplaceAll(challengedId, " ", "> <@")),
