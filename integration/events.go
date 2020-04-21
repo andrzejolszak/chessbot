@@ -216,17 +216,14 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 		log.Printf("Current: %s\n", current)
 		current = current + " "
 		if strings.Contains(param, ":") {
-			if challengerId == " " {
-				challengerId = current
-			} else {
-				challengedId = current
-			}
-
+			challengerId = current
 			current = " "
+		} else {
+			current = current + param
 		}
-
-		current = current + param
 	}
+
+	challengedId = current + " "
 
 	log.Printf("challengerId: %s\n", challengerId)
 	log.Printf("challengedId: %s\n", challengedId)
