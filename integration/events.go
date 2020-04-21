@@ -36,7 +36,7 @@ type command uint8
 var slackCommandPatterns = []CommandPattern{
 	{
 		Type:    Challenge,
-		Pattern: regexp.MustCompile("^<@[\\w|\\d]+> challenge (.*)$"),
+		Pattern: regexp.MustCompile("^<@[\\w|\\d]+> new_game (.*)$"),
 	},
 	{
 		Type:    Move,
@@ -166,6 +166,7 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 		s.sendError(gameID, ev.Channel, err.Error())
 		return
 	}
+
 	link, _ := s.LinkRenderer.CreateLink(gm)
 	boardAttachment := slack.Attachment{
 		Text:     chessMove.String(),
@@ -177,7 +178,7 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 	} else {
 		s.SlackClient.PostMessage(
 			ev.Channel,
-			slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@")), false),
+			slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@")), false),
 			slack.MsgOptionAttachments(boardAttachment),
 			slack.MsgOptionTS(ev.TimeStamp))
 	}
@@ -236,14 +237,16 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 	})
 	s.GameStorage.StoreGame(gameID, gm)
 	gm.Start()
+	// Repeated call to fix font resolve issue
 	link, _ := s.LinkRenderer.CreateLink(gm)
+	link, _ = s.LinkRenderer.CreateLink(gm)
 	log.Printf("Image link: %s\n", link.String())
 	s.SlackClient.PostMessage(
 		ev.Channel,
-		slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@")), false),
+		slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@")), false),
 		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
-			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.ReplaceAll(challengerId, " ", "> <@"), strings.ReplaceAll(challengedId, " ", "> <@")),
+			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.Trim(strings.ReplaceAll(challengerId, " ", "> <@"), "<>@"), strings.Trim(strings.ReplaceAll(challengedId, " ", "> <@"), "<>@")),
 			ImageURL: link.String(),
 		}))
 }
@@ -301,8 +304,8 @@ func (s SlackHandler) handleTakebackCommand(gameID string, ev *slackevents.AppMe
 func getHelpAttachments() []slack.Attachment {
 	return []slack.Attachment{
 		slack.Attachment{
-			Title: "Challenge Players",
-			Text:  "To challenge players, mention @chessbot and say give two list of player separated by spaces. e.g. \"challenge @p1 @p2 : @p3 @p4\".",
+			Title: "Start new game",
+			Text:  "To start a new game, mention @chessbot and say give two list of player separated by ':' and spaces. e.g. \"new_game @p1 @p2 : @p3 @p4\".",
 		},
 		slack.Attachment{
 			Title: "Making a move",

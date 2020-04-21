@@ -50,7 +50,9 @@ func (b BoardRenderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inverted := query.Get("inverted") == "true"
+	// Doubled render to fix font resolve issue
 	image, err := board.Render(chessimage.Options{AssetPath: "./assets/", Inverted: inverted})
+	image, err = board.Render(chessimage.Options{AssetPath: "./assets/", Inverted: inverted})
 	if err != nil {
 		log.Println(err)
 	}
