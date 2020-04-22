@@ -55,7 +55,7 @@ func main() {
 		fmt.Println(ferr)
 	}
 
-	_, derr := downloader.Download(f, &s3.GetObjectInput{
+	dbFileSize, derr := downloader.Download(f, &s3.GetObjectInput{
 		Bucket: aws.String(cloudcube_bucket),
 		Key:    aws.String(keyName),
 	})
@@ -69,7 +69,6 @@ func main() {
 		log.Fatal(err)
 	}
 	var gameStorage game.GameStorage
-	var challengeStorage game.ChallengeStorage
 	var authStorage integration.AuthStorage
 	if config.SqlitePath != "" {
 		gameSQLStore, err := game.NewSqliteStore(config.SqlitePath, uploader, cloudcube_bucket, keyName)
@@ -78,12 +77,10 @@ func main() {
 		}
 		authSQLStore, err := integration.NewSqliteStore(config.SqlitePath)
 		gameStorage = gameSQLStore
-		challengeStorage = gameSQLStore
 		authStorage = authSQLStore
 	} else {
 		memoryStore := game.NewMemoryStore()
 		gameStorage = memoryStore
-		challengeStorage = memoryStore
 		authStorage = integration.NewMemoryStore()
 	}
 	renderLink := rendering.NewRenderLink(config.Hostname, config.SigningKey)
@@ -92,20 +89,19 @@ func main() {
 	})
 	http.Handle("/analyze", analysis.NewHTTPHandler(gameStorage, analysis.NewChesscomAnalyzer(config.ChessAffiliateCode)))
 	http.Handle("/slack", integration.SlackHandler{
-		SigningKey:       config.SlackSigningKey,
-		Hostname:         config.Hostname,
-		AuthStorage:      authStorage,
-		GameStorage:      gameStorage,
-		ChallengeStorage: challengeStorage,
-		LinkRenderer:     renderLink,
+		SigningKey:        config.SlackSigningKey,
+		Hostname:          config.Hostname,
+		AuthStorage:       authStorage,
+		GameStorage:       gameStorage,
+		LinkRenderer:      renderLink,
+		DbFileSizeInBytes: dbFileSize,
 	})
 	http.Handle("/slack/action", integration.SlackActionHandler{
-		SigningKey:       config.SlackSigningKey,
-		Hostname:         config.Hostname,
-		AuthStorage:      authStorage,
-		GameStorage:      gameStorage,
-		ChallengeStorage: challengeStorage,
-		LinkRenderer:     renderLink,
+		SigningKey:   config.SlackSigningKey,
+		Hostname:     config.Hostname,
+		AuthStorage:  authStorage,
+		GameStorage:  gameStorage,
+		LinkRenderer: renderLink,
 	})
 	http.Handle("/slack/oauth", integration.SlackOauthHandler{
 		SlackClientID:     config.SlackClientID,

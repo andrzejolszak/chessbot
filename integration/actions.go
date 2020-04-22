@@ -18,13 +18,12 @@ var challengerPattern = regexp.MustCompile("^<@([\\w|\\d]+).*$")
 
 // SlackActionHandler will respond to all Slack integration component requests
 type SlackActionHandler struct {
-	SigningKey       string
-	Hostname         string
-	SlackClient      *slack.Client
-	AuthStorage      AuthStorage
-	GameStorage      game.GameStorage
-	ChallengeStorage game.ChallengeStorage
-	LinkRenderer     rendering.RenderLink
+	SigningKey   string
+	Hostname     string
+	SlackClient  *slack.Client
+	AuthStorage  AuthStorage
+	GameStorage  game.GameStorage
+	LinkRenderer rendering.RenderLink
 }
 
 func (s SlackActionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -69,24 +68,6 @@ func (s SlackActionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if event.Type != "interactive_message" && event.CallbackID != "challenge_response" {
 		s.sendResponse(w, event.OriginalMessage, "Invalid action.")
-		return
-	}
-	results := challengerPattern.FindStringSubmatch(event.OriginalMessage.Text)
-	challenge, err := s.ChallengeStorage.RetrieveChallenge(results[1], event.User.ID)
-	if err != nil {
-		log.Println(err)
-		s.sendResponse(w, event.OriginalMessage, "Challenge automatically declined. We couldn't find it in our system.")
-		return
-	}
-	if event.Actions[0].Value != "accept" {
-		s.SlackClient.PostMessage(
-			challenge.GameID,
-			slack.MsgOptionText("Challenge declined by player.", false),
-			slack.MsgOptionTS(challenge.GameID))
-		s.sendResponse(w, event.OriginalMessage, "Declined.")
-		if err := s.ChallengeStorage.RemoveChallenge(challenge.ChallengerID, challenge.ChallengedID); err != nil {
-			log.Printf("Failed to remove challenge %v: %v\n", challenge, err)
-		}
 		return
 	}
 }

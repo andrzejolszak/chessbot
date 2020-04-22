@@ -19,13 +19,13 @@ import (
 
 // SlackHandler will respond to all Slack event callback subscriptions
 type SlackHandler struct {
-	SigningKey       string
-	Hostname         string
-	SlackClient      *slack.Client
-	AuthStorage      AuthStorage
-	GameStorage      game.GameStorage
-	ChallengeStorage game.ChallengeStorage
-	LinkRenderer     rendering.RenderLink
+	SigningKey        string
+	Hostname          string
+	SlackClient       *slack.Client
+	AuthStorage       AuthStorage
+	GameStorage       game.GameStorage
+	LinkRenderer      rendering.RenderLink
+	DbFileSizeInBytes int64
 }
 
 const requestVersion = "v0"
@@ -176,9 +176,13 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 	if outcome := gm.Outcome(); outcome != chess.NoOutcome {
 		s.displayEndGame(gm, ev)
 	} else {
+		var fileSizeWarning = ""
+		if s.DbFileSizeInBytes > 1024*1024*3 {
+			fileSizeWarning = "DBFileSize=" + string(s.DbFileSizeInBytes)
+		}
 		s.SlackClient.PostMessage(
 			ev.Channel,
-			slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@")), false),
+			slack.MsgOptionText(fmt.Sprintf("%v turn (%v) %v", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@"), fileSizeWarning), false),
 			slack.MsgOptionAttachments(boardAttachment),
 			slack.MsgOptionTS(ev.TimeStamp))
 	}
