@@ -27,7 +27,7 @@ var pieceNames = map[string]string{
 const (
 	defaultBoardSize   = 512
 	defaultPieceRatio  = 0.8
-	fileSymbols        = "abcdefgh"
+	fileSymbols        = "ABCDEFGH"
 	fileSymbolsReverse = "hgfedcba"
 	rankSymbols        = "12345678"
 	rankSymbolsReverse = "87654321"
@@ -197,7 +197,7 @@ func (r *Renderer) drawRankFile(o Options) error {
 	if err != nil {
 		return err
 	}
-	if err := r.context.LoadFontFace(fontPath, 14); err != nil {
+	if err := r.context.LoadFontFace(fontPath, 18); err != nil {
 		return err
 	}
 
@@ -213,7 +213,7 @@ func (r *Renderer) drawRankFile(o Options) error {
 		} else {
 			color = colorDark
 		}
-		r.context.SetRGB255(color[0], color[1], color[2])
+		r.context.SetRGB255(0, 0, 0)
 		r.context.DrawString(string(symbol), float64(r.drawSize.gridSize*i+2), float64(o.BoardSize-3))
 	}
 
@@ -229,8 +229,8 @@ func (r *Renderer) drawRankFile(o Options) error {
 		} else {
 			color = colorDark
 		}
-		r.context.SetRGB255(color[0], color[1], color[2])
-		r.context.DrawString(string(symbol), float64(o.BoardSize-10), float64(r.drawSize.gridSize*i+12))
+		r.context.SetRGB255(0, 0, 0)
+		r.context.DrawString(string(symbol), float64(3), float64(r.drawSize.gridSize*i+12))
 	}
 
 	return nil
