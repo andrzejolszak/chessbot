@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	// import sqlite package for use with the sql interface
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -32,16 +34,22 @@ const challengeTableCreation = `
 
 // SqliteStore is an implementation of GameStorage and ChallengeStorage interfaces that persists using sqlite3
 type SqliteStore struct {
-	path string
-	db   *sql.DB
+	path       string
+	db         *sql.DB
+	s3uploader *s3manager.Uploader
+	s3bucket   string
+	s3key      string
 }
 
 // NewSqliteStore creates (if not exists) the DB file and structure at the path specified
 // It implements the GameStorage and ChallengeStorage interface and is intended as a suitable
 // perminent storage of games and challenges
-func NewSqliteStore(path string) (*SqliteStore, error) {
+func NewSqliteStore(path string, s3uploader *s3manager.Uploader, s3bucket string, s3key string) (*SqliteStore, error) {
 	store := SqliteStore{
-		path: path,
+		path:       path,
+		s3uploader: s3uploader,
+		s3bucket:   s3bucket,
+		s3key:      s3key,
 	}
 	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?parseTime=1", path))
 	if err != nil {
@@ -65,12 +73,39 @@ func (s *SqliteStore) StoreGame(ID string, gm *Game) error {
 		stmt, _ := s.db.Prepare("update games set pgn = ?, last_moved = ? where id = ?")
 		defer stmt.Close()
 		_, err := stmt.Exec(gm.PGN(), gm.LastMoved(), ID)
-		return err
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	} else {
+		stmt, _ := s.db.Prepare("insert into games (id, player_white_id, player_black_id, last_moved, pgn) values (?, ?, ?, ?, ?)")
+		defer stmt.Close()
+		_, err := stmt.Exec(ID, gm.Players[White].ID, gm.Players[Black].ID, gm.LastMoved(), gm.PGN())
+		if err != nil {
+			return err
+		}
 	}
-	stmt, _ := s.db.Prepare("insert into games (id, player_white_id, player_black_id, last_moved, pgn) values (?, ?, ?, ?, ?)")
-	defer stmt.Close()
-	_, err := stmt.Exec(ID, gm.Players[White].ID, gm.Players[Black].ID, gm.LastMoved(), gm.PGN())
-	return err
+
+	// upload the DB file to S3
+	file, ferr := os.Open("./chessbot.db")
+	if ferr != nil {
+		log.Println(ferr)
+		return ferr
+	}
+
+	upParams := &s3manager.UploadInput{
+		Bucket: &s.s3bucket,
+		Key:    &s.s3key,
+		Body:   file,
+	}
+	upResult, upErr := s.s3uploader.Upload(upParams)
+	if upErr != nil {
+		log.Println(upErr)
+		return upErr
+	}
+	log.Printf("Uploaded to S3 %v", upResult)
+
+	return nil
 }
 
 // RetrieveGame retrieves a game by ID

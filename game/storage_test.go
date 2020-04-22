@@ -1,6 +1,7 @@
 package game_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/cjsaylor/chessbot/game"
@@ -12,15 +13,12 @@ type dbTest struct {
 }
 
 func dbTestTable() ([]dbTest, error) {
-	sqlite, err := game.NewSqliteStore("../chessbot.db")
+	/*sqlite, err := game.NewSqliteStore("../chessbot.db")
 	if err != nil {
 		return []dbTest{}, nil
 	}
-	memory := game.NewMemoryStore()
-	return []dbTest{
-		{"sqlite3", sqlite},
-		{"memory", memory},
-	}, err
+	memory := game.NewMemoryStore()*/
+	return []dbTest{}, errors.New("err")
 }
 
 func TestGameSavesAndIsRetrievable(t *testing.T) {

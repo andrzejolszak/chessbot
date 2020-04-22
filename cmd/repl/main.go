@@ -8,6 +8,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/cjsaylor/chessbot/game"
 	"github.com/cjsaylor/chessbot/integration"
 )
@@ -32,32 +36,58 @@ const (
 )
 
 func main() {
+	var cloudcube_cube = os.Getenv("CLOUDCUBE_CUBENAME")
+	var cloudcube_bucket = "cloud-cube-eu"
+
+	// Session object should be reused
+	sess, serr := session.NewSession(&aws.Config{
+		Region: aws.String("eu-west-1")},
+	)
+	if serr != nil {
+		fmt.Println(serr)
+		os.Exit(1)
+	}
+
+	// Create S3 service client and uploader
+	svc := s3.New(sess)
+	keyName := cloudcube_cube + "/chessbot.db"
+	uploader := s3manager.NewUploaderWithClient(svc)
+
+	// Download the current db file
+	downloader := s3manager.NewDownloaderWithClient(svc)
+	f, ferr := os.Create("./chessbot.db")
+	if ferr != nil {
+		fmt.Println(ferr)
+	}
+
+	_, derr := downloader.Download(f, &s3.GetObjectInput{
+		Bucket: aws.String(cloudcube_bucket),
+		Key:    aws.String(keyName),
+	})
+	if derr != nil {
+		fmt.Printf("error downloading the db file!")
+		fmt.Println(derr)
+	}
+
 	rand.Seed(time.Now().UnixNano())
 	fmt.Println("Game REPL")
 	fmt.Println("Note: piece colors may appear reversed on dark background terminals.")
-	gameID := randomString(20)
-	store, _ := game.NewSqliteStore("./chessbot.db")
+	gameID := "constantGameId"
+	store, _ := game.NewSqliteStore("./chessbot.db", uploader, cloudcube_bucket, keyName)
 	fmt.Println("Game ID: " + gameID)
-	initialState := ""
-	if len(os.Args) > 1 {
-		initialState = os.Args[1]
-	}
 	var gm *game.Game
 	players := []game.Player{
 		game.Player{ID: "player1"},
 		game.Player{ID: "player2"},
 	}
-	if string(initialState) != "" {
-		var err error
-		gm, err = game.NewGameFromFEN(gameID, string(initialState), players...)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	} else {
+	gm, gerr := store.RetrieveGame(gameID)
+	if gerr != nil {
+		fmt.Println(gerr)
+		fmt.Println("Creating a new game...")
 		gm = game.NewGame(gameID, players...)
 
 	}
+
 	inputParser := integration.NewCommandParser([]integration.CommandPattern{
 		{
 			Type:    integration.Move,
