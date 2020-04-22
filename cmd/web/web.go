@@ -32,7 +32,7 @@ func main() {
 
 	// AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY set as env
 	var cloudcube_cube = os.Getenv("CLOUDCUBE_CUBENAME")
-	var cloudcube_bucket = os.Getenv("cloud-cube-eu")
+	var cloudcube_bucket = "cloud-cube-eu"
 
 	// Session object should be reused
 	sess, serr := session.NewSession(&aws.Config{
