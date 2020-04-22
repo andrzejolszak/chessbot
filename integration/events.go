@@ -176,7 +176,7 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 	pgnAttachment := slack.Attachment{
 		Title:     "Analysis",
 		TitleLink: s.Hostname + "/analyze?game_id=" + gm.ID,
-		Text:      gm.Export(),
+		Text:      "(select Run Report -> Basic)",
 	}
 
 	if outcome := gm.Outcome(); outcome != chess.NoOutcome {
