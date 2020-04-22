@@ -173,17 +173,23 @@ func (s SlackHandler) handleMoveCommand(gameID string, moveCommand *MoveCommand,
 		ImageURL: link.String(),
 		Color:    colorToHex[gm.Turn()],
 	}
+	pgnAttachment := slack.Attachment{
+		Title:     "Analysis",
+		TitleLink: s.Hostname + "/analyze?game_id=" + gm.ID,
+		Text:      gm.Export(),
+	}
+
 	if outcome := gm.Outcome(); outcome != chess.NoOutcome {
 		s.displayEndGame(gm, ev)
 	} else {
 		var fileSizeWarning = ""
 		if s.DbFileSizeInBytes > 1024*1024*3 {
-			fileSizeWarning = "DBFileSize=" + string(s.DbFileSizeInBytes)
+			fileSizeWarning = "Warning: DBFileSize=" + string(s.DbFileSizeInBytes)
 		}
 		s.SlackClient.PostMessage(
 			ev.Channel,
-			slack.MsgOptionText(fmt.Sprintf("%v turn (%v) %v", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@"), fileSizeWarning), false),
-			slack.MsgOptionAttachments(boardAttachment),
+			slack.MsgOptionText(fmt.Sprintf("%v to move (%v) %v", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@"), fileSizeWarning), false),
+			slack.MsgOptionAttachments(boardAttachment, pgnAttachment),
 			slack.MsgOptionTS(ev.TimeStamp))
 	}
 }
@@ -247,7 +253,7 @@ func (s SlackHandler) handleChallengeCommand(gameID string, command *ChallengeCo
 	log.Printf("Image link: %s\n", link.String())
 	s.SlackClient.PostMessage(
 		ev.Channel,
-		slack.MsgOptionText(fmt.Sprintf("%v turn (%v)", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@")), false),
+		slack.MsgOptionText(fmt.Sprintf("%v to move (%v)", gm.Turn(), strings.Trim(strings.ReplaceAll(gm.TurnPlayer().ID, " ", "> <@"), "<>@")), false),
 		slack.MsgOptionTS(gameID),
 		slack.MsgOptionAttachments(slack.Attachment{
 			Text:     fmt.Sprintf("Game '%v' vs. '%v' started, here is the opening.", strings.Trim(strings.ReplaceAll(challengerId, " ", "> <@"), "<>@"), strings.Trim(strings.ReplaceAll(challengedId, " ", "> <@"), "<>@")),
