@@ -1,3 +1,5 @@
+# github.com/aws/aws-sdk-go v1.30.11
+github.com/aws/aws-sdk-go
 # github.com/caarlos0/env v3.3.0+incompatible
 github.com/caarlos0/env
 # github.com/cjsaylor/chessimage v0.0.0-20190107020940-8abad33612f4
