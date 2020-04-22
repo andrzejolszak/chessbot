@@ -207,14 +207,8 @@ func (r *Renderer) drawRankFile(o Options) error {
 		symbols = fileSymbols
 	}
 	for i, symbol := range symbols {
-		var color []int
-		if i%2 == 0 {
-			color = colorLight
-		} else {
-			color = colorDark
-		}
 		r.context.SetRGB255(0, 0, 0)
-		r.context.DrawString(string(symbol), float64(r.drawSize.gridSize*i+2), float64(o.BoardSize-3))
+		r.context.DrawString(string(symbol), float64(r.drawSize.gridSize*(i+1)-12), float64(o.BoardSize-3))
 	}
 
 	if o.Inverted {
@@ -223,12 +217,6 @@ func (r *Renderer) drawRankFile(o Options) error {
 		symbols = rankSymbolsReverse
 	}
 	for i, symbol := range symbols {
-		var color []int
-		if i%2 == 0 {
-			color = colorLight
-		} else {
-			color = colorDark
-		}
 		r.context.SetRGB255(0, 0, 0)
 		r.context.DrawString(string(symbol), float64(3), float64(r.drawSize.gridSize*i+12))
 	}
