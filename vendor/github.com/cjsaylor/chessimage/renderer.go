@@ -208,7 +208,7 @@ func (r *Renderer) drawRankFile(o Options) error {
 	}
 	for i, symbol := range symbols {
 		r.context.SetRGB255(0, 0, 0)
-		r.context.DrawString(string(symbol), float64(r.drawSize.gridSize*(i+1)-14), float64(o.BoardSize-2))
+		r.context.DrawString(string(symbol), float64(r.drawSize.gridSize*(i+1)-12), float64(o.BoardSize-3))
 	}
 
 	if o.Inverted {
