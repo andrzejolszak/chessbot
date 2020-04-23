@@ -50,12 +50,12 @@ func main() {
 
 	// Create S3 service client and uploader
 	svc := s3.New(sess)
-	keyName := cloudcube_cube + "/chessbot.db"
+	keyName := cloudcube_cube + "/chessbotRepl.db"
 	uploader := s3manager.NewUploaderWithClient(svc)
 
 	// Download the current db file
 	downloader := s3manager.NewDownloaderWithClient(svc)
-	f, ferr := os.Create("./chessbot.db")
+	f, ferr := os.Create("./chessbotRepl.db")
 	if ferr != nil {
 		fmt.Println(ferr)
 	}
@@ -73,7 +73,7 @@ func main() {
 	fmt.Println("Game REPL")
 	fmt.Println("Note: piece colors may appear reversed on dark background terminals.")
 	gameID := "constantGameId"
-	store, _ := game.NewSqliteStore("./chessbot.db", uploader, cloudcube_bucket, keyName)
+	store, _ := game.NewSqliteStore("./chessbotRepl.db", uploader, cloudcube_bucket, keyName)
 	fmt.Println("Game ID: " + gameID)
 	var gm *game.Game
 	players := []game.Player{
