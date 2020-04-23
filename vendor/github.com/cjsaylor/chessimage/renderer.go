@@ -27,7 +27,7 @@ var pieceNames = map[string]string{
 const (
 	defaultBoardSize   = 512
 	defaultPieceRatio  = 0.8
-	fileSymbols        = "ABCDEFGH"
+	fileSymbols        = "abcdefgh"
 	fileSymbolsReverse = "hgfedcba"
 	rankSymbols        = "12345678"
 	rankSymbolsReverse = "87654321"
@@ -218,7 +218,7 @@ func (r *Renderer) drawRankFile(o Options) error {
 	}
 	for i, symbol := range symbols {
 		r.context.SetRGB255(0, 0, 0)
-		r.context.DrawString(string(symbol), float64(2), float64(r.drawSize.gridSize*i+14))
+		r.context.DrawString(string(symbol), float64(2), float64(r.drawSize.gridSize*i+15))
 	}
 
 	return nil
